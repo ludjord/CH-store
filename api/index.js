@@ -12,9 +12,6 @@ import marketingRoutes from '../backend/routes/marketingRoutes.js';
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
-
 const app = express();
 
 // Middleware
@@ -28,9 +25,33 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Health Check Endpoint (Diagnostics)
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        message: 'CHSTORE API is alive',
+        timestamp: new Date().toISOString(),
+        env: {
+            has_mongo: !!process.env.MONGO_URI,
+            node_env: process.env.NODE_ENV
+        }
+    });
+});
+
 // Base API route
 app.get('/api', (req, res) => {
     res.send('CHSTORE API is running...');
+});
+
+// Lazy Connect Database (so it doesn't block the health check)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('Database connection failed', err);
+        next();
+    }
 });
 
 // Routes
