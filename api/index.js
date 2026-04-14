@@ -25,16 +25,25 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Health Check Endpoint (Handles both /api/health and /health)
+// ==========================================
+// 🎣 JARING IKAN (WILDCARD DIAGNOSTIC)
+// ==========================================
+app.get('/api/cek-dong', (req, res) => {
+    res.json({
+        msg: "Jaring Ikan Menangkap Sesuatu!",
+        url: req.url,
+        path: req.path,
+        env_check: !!process.env.MONGO_URI,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Health Check Endpoint
 app.get(['/api/health', '/health'], (req, res) => {
     res.json({
         status: 'ok',
-        message: 'CHSTORE API is alive and reachable',
-        timestamp: new Date().toISOString(),
-        env: {
-            has_mongo: !!process.env.MONGO_URI,
-            node_env: process.env.NODE_ENV
-        }
+        message: 'CHSTORE API is alive',
+        timestamp: new Date().toISOString()
     });
 });
 
