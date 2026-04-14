@@ -25,11 +25,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Health Check Endpoint (Diagnostics)
-app.get('/api/health', (req, res) => {
+// Health Check Endpoint (Handles both /api/health and /health)
+app.get(['/api/health', '/health'], (req, res) => {
     res.json({
         status: 'ok',
-        message: 'CHSTORE API is alive',
+        message: 'CHSTORE API is alive and reachable',
         timestamp: new Date().toISOString(),
         env: {
             has_mongo: !!process.env.MONGO_URI,
@@ -39,25 +39,24 @@ app.get('/api/health', (req, res) => {
 });
 
 // Base API route
-app.get('/api', (req, res) => {
+app.get(['/api', '/'], (req, res) => {
     res.send('CHSTORE API is running...');
 });
 
-// Lazy Connect Database (so it doesn't block the health check)
+// Lazy Connect Database
 app.use(async (req, res, next) => {
     try {
         await connectDB();
         next();
     } catch (err) {
-        console.error('Database connection failed', err);
         next();
     }
 });
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/marketing', marketingRoutes);
+// Routes with Dual Path Support (Vercel Compatibility)
+app.use(['/api/users', '/users'], userRoutes);
+app.use(['/api/products', '/products'], productRoutes);
+app.use(['/api/orders', '/orders'], orderRoutes);
+app.use(['/api/marketing', '/marketing'], marketingRoutes);
 
 export default app;
