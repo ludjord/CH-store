@@ -1,3 +1,42 @@
-import app from '../backend/server.js';
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+
+import connectDB from '../backend/config/db.js';
+import userRoutes from '../backend/routes/userRoutes.js';
+import productRoutes from '../backend/routes/productRoutes.js';
+import orderRoutes from '../backend/routes/orderRoutes.js';
+import marketingRoutes from '../backend/routes/marketingRoutes.js';
+
+// Load env vars
+dotenv.config();
+
+// Connect to database
+connectDB();
+
+const app = express();
+
+// Middleware
+app.use(cors({
+    origin: [
+      'http://localhost:5173', 
+      /\.vercel\.app$/ 
+    ],
+    credentials: true,
+}));
+app.use(express.json());
+app.use(cookieParser());
+
+// Base API route
+app.get('/api', (req, res) => {
+    res.send('CHSTORE API is running...');
+});
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/marketing', marketingRoutes);
 
 export default app;
