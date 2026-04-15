@@ -35,40 +35,9 @@ export default function CartPage() {
       });
 
       if(order) {
-         try {
-             // Request Token Pembayaran Midtrans
-             const { data: snapData } = await api.get(`/orders/${order._id}/pay`);
-             
-             if (snapData.mock) {
-                 clearCart();
-                 alert(`Simulasi Pembayaran (MOCK) Berhasil!\nKarena Server Key Midtrans kosong di .env. Order ID Rekaman: #${order._id.substring(0,8)}`);
-                 navigate('/');
-             } else {
-                 if(window.snap) {
-                   window.snap.pay(snapData.token, {
-                     onSuccess: function(result){
-                       clearCart();
-                       alert("Pembayaran Terverifikasi Midtrans! " + result.status_message);
-                       navigate('/');
-                     },
-                     onPending: function(result){
-                       alert("Menunggu pembayaran Anda! Selesaikan tagihan.");
-                       navigate('/');
-                     },
-                     onError: function(result){
-                       alert("Pembayaran Gagal: " + result.status_message);
-                     },
-                     onClose: function(){
-                       alert('Anda menutup sistem kasir sebelum menyelesaikan pembayaran');
-                     }
-                   });
-                 } else {
-                   alert('Library Midtrans gagal dimuat.');
-                 }
-             }
-         } catch(e) {
-             alert('Order masuk tapi Midtrans Gagal: ' + (e.response?.data?.message || e.message));
-         }
+         clearCart();
+         alert(`Pesanan Berhasil Dibuat!\nID Pesanan: #${order._id.substring(0,8)}. Silakan hubungi Admin untuk proses pembayaran manual.`);
+         navigate('/');
       }
     } catch (error) {
       alert("Checkout Gagal. " + (error.response?.data?.message || error.message));

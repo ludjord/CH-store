@@ -1,13 +1,6 @@
 import Order from '../models/orderModel.js';
 import mongoose from 'mongoose';
-import midtransClient from 'midtrans-client';
 import sendEmail from '../utils/sendEmail.js';
-
-const snap = new midtransClient.Snap({
-  isProduction: process.env.NODE_ENV === 'production',
-  serverKey: process.env.MIDTRANS_SERVER_KEY || 'SERVER_KEY_MOCK',
-  clientKey: process.env.MIDTRANS_CLIENT_KEY || 'CLIENT_KEY_MOCK'
-});
 
 // Runtime mock state cache
 let runtimeOrders = [
@@ -18,7 +11,7 @@ let runtimeOrders = [
 
 export const getOrders = async (req, res) => {
   if (mongoose.connection.readyState !== 1) {
-    return res.json(runtimeOrders); // Mengembalikan mock yang terkini (hidup)
+    return res.json(runtimeOrders); 
   }
   try {
     const orders = await Order.find({}).populate('user', 'id name');
@@ -35,17 +28,16 @@ export const createOrder = async (req, res) => {
 
   const simulatedUserName = req.user ? req.user.name : 'Guest Customer';
 
-  // Jika DB offline, record secara lokal
   if (mongoose.connection.readyState !== 1) {
     const order = {
        _id: 'ord_' + Date.now(),
        user: { name: simulatedUserName },
        orderItems,
        totalPrice,
-       isPaid: false, // Simulasi belum bayar
+       isPaid: false,
        createdAt: new Date()
     };
-    runtimeOrders.push(order); // Push Order ke Tabel Admin secara instan!
+    runtimeOrders.push(order);
     return res.status(201).json(order);
   }
 
@@ -57,12 +49,11 @@ export const createOrder = async (req, res) => {
     });
     const createdOrder = await order.save();
     
-    // Kirim Email Notifikasi (Async - jangan tunggu agar API cepat)
     if (mongoose.connection.readyState === 1) {
       sendEmail({
         email: req.user?.email || process.env.FROM_EMAIL,
-        subject: `Pesanan Terkonfirmasi - ${createdOrder._id}`,
-        html: `<h1>Terima Kasih!</h1><p>Pesanan Anda <b>#${createdOrder._id}</b> telah kami terima dengan total <b>Rp ${totalPrice}</b>.</p><p>Admin akan segera memverifikasi pembayaran Anda.</p>`
+        subject: `Pesanan Baru Diterima - ${createdOrder._id}`,
+        html: `<h1>Pesanan Berhasil!</h1><p>Pesanan Anda <b>#${createdOrder._id}</b> telah kami terima. Silakan lakukan konfirmasi pembayaran ke Admin.</p>`
       }).catch(err => console.error('Email Fail:', err));
     }
 
@@ -71,33 +62,12 @@ export const createOrder = async (req, res) => {
 };
 
 export const getPaymentToken = async (req, res) => {
-  try {
-    const order = mongoose.connection.readyState !== 1 
-      ? runtimeOrders.find(o => o._id === req.params.id) 
-      : await Order.findById(req.params.id).populate('user', 'name email');
-
-    if(!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-    let parameter = {
-      transaction_details: {
-        order_id: order._id.toString() + '_' + Date.now(), // Tambah Date agar unik saat retry
-        gross_amount: order.totalPrice
-      },
-      customer_details: {
-        first_name: order.user?.name || "Pelanggan",
-        email: order.user?.email || "customer@example.com"
-      }
-    };
-    
-    if(snap.apiConfig.serverKey === 'SERVER_KEY_MOCK' || mongoose.connection.readyState !== 1) {
-       return res.json({ token: 'simulated_snap_token_123', mock: true });
-    }
-
-    const token = await snap.createTransactionToken(parameter);     
-    res.json({ token });
-  } catch (err) {
-    res.status(500).json({ message: 'Gagal membuat token Midtrans', error: err.message });
-  }
+  // Karena Midtrans dihapus, fungsi ini hanya mengembalikan instruksi pembayaran manual
+  res.json({ 
+    message: 'Manual Payment Mode', 
+    instruction: 'Silakan hubungi Admin untuk konfirmasi pembayaran manual.',
+    mock: true 
+  });
 };
 
 export const updateOrderToPaidManual = async (req, res) => {
