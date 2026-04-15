@@ -29,27 +29,43 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Log request untuk debugging di Vercel
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 // Connect DB satu kali per instance (serverless-safe)
 let isConnected = false;
 app.use(async (req, res, next) => {
   if (!isConnected) {
-    await connectDB();
-    isConnected = true;
+    try {
+      await connectDB();
+      isConnected = true;
+      console.log('MongoDB connected');
+    } catch (err) {
+      console.error('Database connection failed:', err.message);
+      return res.status(500).json({ message: 'Database Connection Error', error: err.message });
+    }
   }
   next();
 });
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/marketing', marketingRoutes);
+// Gunakan Router agar fleksibel (beberapa env Vercel menghapus prefix /api)
+const router = express.Router();
+router.use('/users', userRoutes);
+router.use('/products', productRoutes);
+router.use('/orders', orderRoutes);
+router.use('/marketing', marketingRoutes);
+router.get('/', (req, res) => res.json({ status: 'CHSTORE API running ✅' }));
 
-app.get('/api', (req, res) => res.json({ status: 'CHSTORE API running ✅' }));
+// Daftarkan ke kedua kemungkinan path
+app.use('/api', router);
+app.use('/', router); 
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('SERVER ERROR:', err.stack);
   res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
