@@ -93,7 +93,8 @@ const forgotPassword = async (req, res) => {
      user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // Kadaluarsa di 10 menit
      await user.save();
 
-     const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
      const message = `
         <div style="font-family:sans-serif; max-w:500px; margin:auto;">
            <h2 style="color:#4F46E5;">Minta Reset Kata Sandi</h2>

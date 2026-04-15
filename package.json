@@ -1,29 +1,7 @@
 {
-  "name": "chstore-mern-unified",
+  "name": "chstore-mern",
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
-    "build": "vite build frontend --outDir dist"
-  },
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "midtrans-client": "^1.4.3",
-    "mongoose": "^9.4.1",
-    "nodemailer": "^8.0.5",
-    "@tailwindcss/vite": "^4.2.2",
-    "axios": "^1.15.0",
-    "lucide-react": "^1.8.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.0",
-    "zustand": "^5.0.12",
-    "tailwindcss": "^4.2.2",
-    "vite": "^8.0.4",
-    "@vitejs/plugin-react": "^6.0.1"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend"
   }
 }
